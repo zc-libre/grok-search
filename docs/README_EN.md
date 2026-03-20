@@ -184,7 +184,161 @@ Call grok-search toggle_builtin_tools to disable Claude Code's built-in WebSearc
 ```
 This will automatically modify the **project-level** `.claude/settings.json` `permissions.deny`, disabling Claude Code's built-in WebSearch and WebFetch, forcing Claude Code to use this project for searches!
 
+### Other LLM Client Configuration
 
+In addition to Claude Code, this project supports all MCP-compatible LLM clients. Below are configuration examples for popular clients.
+
+<details>
+<summary><b>Cursor</b></summary>
+
+Create `.cursor/mcp.json` in your project root (project-level) or `~/.cursor/mcp.json` (global):
+
+```json
+{
+  "mcpServers": {
+    "grok-search": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/zc-libre/grok-search",
+        "grok-search"
+      ],
+      "env": {
+        "GROK_API_URL": "https://your-api-endpoint.com/v1",
+        "GROK_API_KEY": "your-grok-api-key",
+        "TAVILY_API_KEY": "tvly-your-tavily-key"
+      }
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><b>Windsurf</b></summary>
+
+Edit `~/.codeium/windsurf/mcp_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "grok-search": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/zc-libre/grok-search",
+        "grok-search"
+      ],
+      "env": {
+        "GROK_API_URL": "https://your-api-endpoint.com/v1",
+        "GROK_API_KEY": "your-grok-api-key",
+        "TAVILY_API_KEY": "tvly-your-tavily-key"
+      }
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><b>Cline (VS Code Extension)</b></summary>
+
+Open Cline Settings → MCP Servers → Add configuration:
+
+```json
+{
+  "mcpServers": {
+    "grok-search": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/zc-libre/grok-search",
+        "grok-search"
+      ],
+      "env": {
+        "GROK_API_URL": "https://your-api-endpoint.com/v1",
+        "GROK_API_KEY": "your-grok-api-key",
+        "TAVILY_API_KEY": "tvly-your-tavily-key"
+      }
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><b>VS Code Copilot (GitHub Copilot Chat)</b></summary>
+
+Create `.vscode/mcp.json` in your project root:
+
+```json
+{
+  "servers": {
+    "grok-search": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/zc-libre/grok-search",
+        "grok-search"
+      ],
+      "env": {
+        "GROK_API_URL": "https://your-api-endpoint.com/v1",
+        "GROK_API_KEY": "your-grok-api-key",
+        "TAVILY_API_KEY": "tvly-your-tavily-key"
+      }
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><b>OpenAI Codex CLI</b></summary>
+
+#### One-Click Command
+
+```bash
+codex mcp add grok-search \
+  --env GROK_API_URL=https://your-api-endpoint.com/v1 \
+  --env GROK_API_KEY=your-grok-api-key \
+  --env TAVILY_API_KEY=tvly-your-tavily-key \
+  -- uvx --from git+https://github.com/zc-libre/grok-search grok-search
+```
+
+#### Manual Configuration
+
+You can also edit `~/.codex/config.toml` (global) or `.codex/config.toml` in your project:
+
+```toml
+[mcp_servers.grok-search]
+command = "uvx"
+args = ["--from", "git+https://github.com/zc-libre/grok-search", "grok-search"]
+
+[mcp_servers.grok-search.env]
+GROK_API_URL = "https://your-api-endpoint.com/v1"
+GROK_API_KEY = "your-grok-api-key"
+TAVILY_API_KEY = "tvly-your-tavily-key"
+```
+
+Verify: `codex mcp list`, or type `/mcp` in the Codex TUI.
+</details>
+
+<details>
+<summary><b>Cherry Studio</b></summary>
+
+In Cherry Studio Settings → MCP Servers → Add, select `stdio` type:
+
+- **Command**: `uvx`
+- **Args**: `--from git+https://github.com/zc-libre/grok-search grok-search`
+- **Environment Variables**:
+  - `GROK_API_URL`: `https://your-api-endpoint.com/v1`
+  - `GROK_API_KEY`: `your-grok-api-key`
+  - `TAVILY_API_KEY`: `tvly-your-tavily-key`
+
+</details>
+
+> 💡 All clients support the full set of environment variables listed in the table above.
 
 ## 3. MCP Tools
 

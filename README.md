@@ -182,7 +182,161 @@ claude mcp list
 ```
 工具将自动修改**项目级** `.claude/settings.json` 的 `permissions.deny`，一键禁用 Claude Code 官方的 WebSearch 和 WebFetch，从而迫使claude code调用本项目实现搜索！
 
+### 其他 LLM 客户端配置
 
+除 Claude Code 外，本项目同样支持所有兼容 MCP 协议的 LLM 客户端。以下是常见客户端的配置示例。
+
+<details>
+<summary><b>Cursor</b></summary>
+
+在项目根目录创建 `.cursor/mcp.json`（项目级）或 `~/.cursor/mcp.json`（全局）：
+
+```json
+{
+  "mcpServers": {
+    "grok-search": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/zc-libre/grok-search",
+        "grok-search"
+      ],
+      "env": {
+        "GROK_API_URL": "https://your-api-endpoint.com/v1",
+        "GROK_API_KEY": "your-grok-api-key",
+        "TAVILY_API_KEY": "tvly-your-tavily-key"
+      }
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><b>Windsurf</b></summary>
+
+编辑 `~/.codeium/windsurf/mcp_config.json`：
+
+```json
+{
+  "mcpServers": {
+    "grok-search": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/zc-libre/grok-search",
+        "grok-search"
+      ],
+      "env": {
+        "GROK_API_URL": "https://your-api-endpoint.com/v1",
+        "GROK_API_KEY": "your-grok-api-key",
+        "TAVILY_API_KEY": "tvly-your-tavily-key"
+      }
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><b>Cline (VS Code 插件)</b></summary>
+
+打开 Cline 设置 → MCP Servers → 添加配置：
+
+```json
+{
+  "mcpServers": {
+    "grok-search": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/zc-libre/grok-search",
+        "grok-search"
+      ],
+      "env": {
+        "GROK_API_URL": "https://your-api-endpoint.com/v1",
+        "GROK_API_KEY": "your-grok-api-key",
+        "TAVILY_API_KEY": "tvly-your-tavily-key"
+      }
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><b>VS Code Copilot (GitHub Copilot Chat)</b></summary>
+
+在项目根目录创建 `.vscode/mcp.json`：
+
+```json
+{
+  "servers": {
+    "grok-search": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/zc-libre/grok-search",
+        "grok-search"
+      ],
+      "env": {
+        "GROK_API_URL": "https://your-api-endpoint.com/v1",
+        "GROK_API_KEY": "your-grok-api-key",
+        "TAVILY_API_KEY": "tvly-your-tavily-key"
+      }
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><b>OpenAI Codex CLI</b></summary>
+
+#### 一键命令添加
+
+```bash
+codex mcp add grok-search \
+  --env GROK_API_URL=https://your-api-endpoint.com/v1 \
+  --env GROK_API_KEY=your-grok-api-key \
+  --env TAVILY_API_KEY=tvly-your-tavily-key \
+  -- uvx --from git+https://github.com/zc-libre/grok-search grok-search
+```
+
+#### 手动编辑配置文件
+
+也可以直接编辑 `~/.codex/config.toml`（全局）或项目下的 `.codex/config.toml`：
+
+```toml
+[mcp_servers.grok-search]
+command = "uvx"
+args = ["--from", "git+https://github.com/zc-libre/grok-search", "grok-search"]
+
+[mcp_servers.grok-search.env]
+GROK_API_URL = "https://your-api-endpoint.com/v1"
+GROK_API_KEY = "your-grok-api-key"
+TAVILY_API_KEY = "tvly-your-tavily-key"
+```
+
+验证：`codex mcp list`，或在 Codex TUI 中输入 `/mcp` 查看。
+</details>
+
+<details>
+<summary><b>Cherry Studio</b></summary>
+
+在 Cherry Studio 设置 → MCP 服务器中添加，选择 `stdio` 类型：
+
+- **命令**: `uvx`
+- **参数**: `--from git+https://github.com/zc-libre/grok-search grok-search`
+- **环境变量**:
+  - `GROK_API_URL`: `https://your-api-endpoint.com/v1`
+  - `GROK_API_KEY`: `your-grok-api-key`
+  - `TAVILY_API_KEY`: `tvly-your-tavily-key`
+
+</details>
+
+> 💡 所有客户端均支持上述环境变量表中的全部配置项。
 
 ## 三、MCP 工具介绍
 
