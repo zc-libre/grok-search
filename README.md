@@ -28,7 +28,7 @@ Claude ──MCP──► Grok Search Server
 
 - **双引擎**：Grok 搜索 + Tavily 抓取/映射，互补协作
 - **Firecrawl 托底**：Tavily 提取失败时自动降级到 Firecrawl Scrape，支持空内容自动重试
-- **OpenAI 兼容接口**，支持任意 Grok 镜像站
+- **双接口模式**：支持 OpenAI 兼容的 Chat Completions 接口与 xAI 官方 Responses 接口（`/v1/responses`），通过 `GROK_API_MODE` 一键切换
 - **自动时间注入**（检测时间相关查询，注入本地时间上下文）
 - 一键禁用 Claude Code 官方 WebSearch/WebFetch，强制路由到本工具
 - 智能重试（支持 Retry-After 头解析 + 指数退避）
@@ -80,7 +80,7 @@ claude mcp add-json grok-search --scope user '{
   "command": "uvx",
   "args": [
     "--from",
-    "git+https://github.com/GuDaStudio/GrokSearch@grok-with-tavily",
+    "git+https://github.com/zc-libre/grok-search",
     "grok-search"
   ],
   "env": {
@@ -91,6 +91,35 @@ claude mcp add-json grok-search --scope user '{
   }
 }'
 ```
+
+<details>
+<summary><b>使用 xAI Responses API + 多智能体模型</b></summary>
+
+设置 `GROK_API_MODE=responses` 启用 xAI 官方 Responses 端点，可配合 `grok-4.20-multi-agent` 多智能体模型使用：
+
+```bash
+claude mcp add-json grok-search --scope user '{
+  "type": "stdio",
+  "command": "uvx",
+  "args": [
+    "--from",
+    "git+https://github.com/zc-libre/grok-search",
+    "grok-search"
+  ],
+  "env": {
+    "GROK_API_URL": "https://api.x.ai/v1",
+    "GROK_API_KEY": "your-xai-api-key",
+    "GROK_API_MODE": "responses",
+    "GROK_MODEL": "grok-4.20-multi-agent-beta-0309",
+    "GROK_REASONING_EFFORT": "high",
+    "TAVILY_API_KEY": "tvly-your-tavily-key"
+  }
+}'
+```
+
+> **注意**：`grok-4.20-multi-agent` 系列模型**仅支持 Responses API**，使用 Chat Completions 模式会返回 HTTP 400。
+
+</details>
 
 <details> <summary>如果遇到 SSL / 证书验证错误</summary>
 
@@ -107,7 +136,7 @@ claude mcp add-json grok-search --scope user '{
   "args": [
     "--native-tls",
     "--from",
-    "git+https://github.com/GuDaStudio/GrokSearch@grok-with-tavily",
+    "git+https://github.com/zc-libre/grok-search",
     "grok-search"
   ],
   "env": {
@@ -126,6 +155,8 @@ claude mcp add-json grok-search --scope user '{
 | `GROK_API_URL` | ✅ | - | Grok API 地址（OpenAI 兼容格式） |
 | `GROK_API_KEY` | ✅ | - | Grok API 密钥 |
 | `GROK_MODEL` | ❌ | `grok-4-fast` | 默认模型（设置后优先于 `~/.config/grok-search/config.json`） |
+| `GROK_API_MODE` | ❌ | `chat` | API 接口模式：`chat`（Chat Completions）或 `responses`（Responses API） |
+| `GROK_REASONING_EFFORT` | ❌ | - | 推理强度（仅 Responses 模式）：`low`/`medium`（4 agent）、`high`/`xhigh`（16 agent） |
 | `TAVILY_API_KEY` | ❌ | - | Tavily API 密钥（用于 web_fetch / web_map） |
 | `TAVILY_API_URL` | ❌ | `https://api.tavily.com` | Tavily API 地址 |
 | `TAVILY_ENABLED` | ❌ | `true` | 是否启用 Tavily |
@@ -250,7 +281,7 @@ A: Grok（`GROK_API_URL` + `GROK_API_KEY`）为必填，提供核心搜索能力
 <summary>
 Q: Grok API 地址需要什么格式？
 </summary>
-A: 需要 OpenAI 兼容格式的 API 地址（支持 `/chat/completions` 和 `/models` 端点）。如使用官方 Grok，需通过兼容 OpenAI 格式的镜像站访问。
+A: 需要 OpenAI 兼容格式的 API 地址。默认使用 `/chat/completions` 端点（`GROK_API_MODE=chat`）；设置 `GROK_API_MODE=responses` 后切换到 xAI 官方 Responses 端点（`/responses`），可启用服务端 `web_search`、`x_search` 等工具。
 </details>
 
 <details>
@@ -270,5 +301,5 @@ A: 在 Claude 对话中说"显示 grok-search 配置信息"，将自动测试 AP
 
 **如果这个项目对您有帮助，请给个 Star！**
 
-[![Star History Chart](https://api.star-history.com/svg?repos=GuDaStudio/GrokSearch&type=date&legend=top-left)](https://www.star-history.com/#GuDaStudio/GrokSearch&type=date&legend=top-left)
+[![Star History Chart](https://api.star-history.com/svg?repos=zc-libre/grok-search&type=date&legend=top-left)](https://www.star-history.com/#zc-libre/grok-search&type=date&legend=top-left)
 </div>

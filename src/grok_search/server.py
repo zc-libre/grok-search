@@ -147,7 +147,7 @@ async def web_search(
             return {"session_id": session_id, "content": f"无效模型: {model}", "sources_count": 0}
         effective_model = model
 
-    grok_provider = GrokSearchProvider(api_url, api_key, effective_model)
+    grok_provider = GrokSearchProvider(api_url, api_key, effective_model, config.grok_api_mode, config.grok_reasoning_effort)
 
     # 计算额外信源配额
     has_tavily = bool(config.tavily_api_key)

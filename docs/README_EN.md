@@ -27,7 +27,7 @@ Claude --MCP--> Grok Search Server
 ### Features
 
 - **Dual Engine**: Grok search + Tavily extraction/mapping, complementary collaboration
-- **OpenAI-compatible interface**, supports any Grok mirror endpoint
+- **Dual API mode**: supports both OpenAI-compatible Chat Completions and xAI's official Responses API (`/v1/responses`), switchable via `GROK_API_MODE`
 - **Automatic time injection** (detects time-related queries, injects local time context)
 - One-click disable Claude Code's built-in WebSearch/WebFetch, force routing to this tool
 - Smart retry (Retry-After header parsing + exponential backoff)
@@ -86,7 +86,7 @@ claude mcp add-json grok-search --scope user '{
   "command": "uvx",
   "args": [
     "--from",
-    "git+https://github.com/GuDaStudio/GrokSearch@grok-with-tavily",
+    "git+https://github.com/zc-libre/grok-search",
     "grok-search"
   ],
   "env": {
@@ -105,7 +105,7 @@ claude mcp add-json grok-search --scope user '{
   "command": "uvx",
   "args": [
     "--from",
-    "git+https://github.com/GuDaStudio/GrokSearch@grok-with-tavily",
+    "git+https://github.com/zc-libre/grok-search",
     "grok-search"
   ],
   "env": {
@@ -117,6 +117,35 @@ claude mcp add-json grok-search --scope user '{
 }'
 ```
 
+<details>
+<summary><b>Using xAI Responses API + Multi-Agent Model</b></summary>
+
+Set `GROK_API_MODE=responses` to enable xAI's official Responses endpoint, compatible with `grok-4.20-multi-agent` models:
+
+```bash
+claude mcp add-json grok-search --scope user '{
+  "type": "stdio",
+  "command": "uvx",
+  "args": [
+    "--from",
+    "git+https://github.com/zc-libre/grok-search",
+    "grok-search"
+  ],
+  "env": {
+    "GROK_API_URL": "https://api.x.ai/v1",
+    "GROK_API_KEY": "your-xai-api-key",
+    "GROK_API_MODE": "responses",
+    "GROK_MODEL": "grok-4.20-multi-agent-beta-0309",
+    "GROK_REASONING_EFFORT": "high",
+    "TAVILY_API_KEY": "tvly-your-tavily-key"
+  }
+}'
+```
+
+> **Note**: `grok-4.20-multi-agent` models **only work with the Responses API**. Using Chat Completions mode will return HTTP 400.
+
+</details>
+
 You can also configure additional environment variables in the `env` field:
 
 | Variable | Required | Default | Description |
@@ -126,6 +155,8 @@ You can also configure additional environment variables in the `env` field:
 | `GROK_API_URL` | No | `{GUDA_BASE_URL}/grok/v1` | Grok API endpoint (OpenAI-compatible), overrides GuDa-derived value |
 | `GROK_API_KEY` | No | `{GUDA_API_KEY}` | Grok API key, overrides GuDa-derived value |
 | `GROK_MODEL` | No | `grok-4.20-beta` | Default model (takes precedence over `~/.config/grok-search/config.json` when set) |
+| `GROK_API_MODE` | No | `chat` | API mode: `chat` (Chat Completions) or `responses` (Responses API) |
+| `GROK_REASONING_EFFORT` | No | - | Reasoning effort (Responses mode only): `low`/`medium` (4 agents), `high`/`xhigh` (16 agents) |
 | `TAVILY_API_KEY` | No | `{GUDA_API_KEY}` | Tavily API key (for web_fetch / web_map) |
 | `TAVILY_API_URL` | No | `{GUDA_BASE_URL}/tavily` | Tavily API endpoint |
 | `TAVILY_ENABLED` | No | `true` | Enable Tavily |
@@ -252,7 +283,7 @@ A: Set `GUDA_API_KEY` to get full Grok + Tavily + Firecrawl service. Without GuD
 <summary>
 Q: What format does the Grok API URL need?
 </summary>
-A: An OpenAI-compatible API endpoint (supporting `/chat/completions` and `/models` endpoints). If using official Grok, access it through an OpenAI-compatible mirror.
+A: An OpenAI-compatible API endpoint. By default it uses the `/chat/completions` endpoint (`GROK_API_MODE=chat`). Set `GROK_API_MODE=responses` to switch to xAI's official Responses endpoint (`/responses`), which enables server-side tools like `web_search` and `x_search`.
 </details>
 
 <details>
@@ -272,5 +303,5 @@ A: Say "Show grok-search configuration info" in a Claude conversation to automat
 
 **If this project helps you, please give it a Star!**
 
-[![Star History Chart](https://api.star-history.com/svg?repos=GuDaStudio/GrokSearch&type=date&legend=top-left)](https://www.star-history.com/#GuDaStudio/GrokSearch&type=date&legend=top-left)
+[![Star History Chart](https://api.star-history.com/svg?repos=zc-libre/grok-search&type=date&legend=top-left)](https://www.star-history.com/#zc-libre/grok-search&type=date&legend=top-left)
 </div>

@@ -7,7 +7,7 @@ class Config:
     _SETUP_COMMAND = (
         'claude mcp add-json grok-search --scope user '
         '\'{"type":"stdio","command":"uvx","args":["--from",'
-        '"git+https://github.com/GuDaStudio/GrokSearch","grok-search"],'
+        '"git+https://github.com/zc-libre/grok-search","grok-search"],'
         '"env":{"GROK_API_URL":"your-api-url","GROK_API_KEY":"your-api-key"}}\''
     )
     _DEFAULT_MODEL = "grok-4-fast"
@@ -62,6 +62,14 @@ class Config:
     @property
     def retry_max_wait(self) -> int:
         return int(os.getenv("GROK_RETRY_MAX_WAIT", "10"))
+
+    @property
+    def grok_api_mode(self) -> str:
+        return os.getenv("GROK_API_MODE", "chat").lower().strip()
+
+    @property
+    def grok_reasoning_effort(self) -> str:
+        return os.getenv("GROK_REASONING_EFFORT", "").lower().strip()
 
     @property
     def grok_api_url(self) -> str:
@@ -183,6 +191,8 @@ class Config:
             "GROK_API_URL": api_url,
             "GROK_API_KEY": api_key_masked,
             "GROK_MODEL": self.grok_model,
+            "GROK_API_MODE": self.grok_api_mode,
+            "GROK_REASONING_EFFORT": self.grok_reasoning_effort or "未设置",
             "GROK_DEBUG": self.debug_enabled,
             "GROK_LOG_LEVEL": self.log_level,
             "GROK_LOG_DIR": str(self.log_dir),
