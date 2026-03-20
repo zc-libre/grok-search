@@ -189,7 +189,7 @@ This will automatically modify the **project-level** `.claude/settings.json` `pe
 ## 3. MCP Tools
 
 <details>
-<summary>This project provides eight MCP tools (click to expand)</summary>
+<summary>This project provides nine MCP tools (click to expand)</summary>
 
 ### `web_search` — AI Web Search
 
@@ -211,9 +211,26 @@ Return value (structured dict):
 - `content`: answer only (sources removed)
 - `sources_count`: cached sources count
 
+### `x_search` — X/Twitter Search (Responses API)
+
+Search posts on X (formerly Twitter) using xAI's x_search tool. **Only available when `GROK_API_MODE=responses`.**
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `query` | string | Yes | - | Search query for X posts |
+| `x_handles` | string | No | `""` | Comma-separated X handles to include (max 10, without @) |
+| `excluded_x_handles` | string | No | `""` | Comma-separated X handles to exclude (max 10) |
+| `from_date` | string | No | `""` | Start date in ISO8601 format (e.g., `2026-03-01T00:00:00Z`) |
+| `to_date` | string | No | `""` | End date in ISO8601 format |
+| `image_understanding` | bool | No | `false` | Analyze images in posts |
+| `video_understanding` | bool | No | `false` | Analyze videos in posts |
+| `model` | string | No | `null` | Per-request Grok model ID |
+
+Return value structure is the same as `web_search`.
+
 ### `get_sources` — Retrieve Sources
 
-Retrieves the full cached source list for a previous `web_search` call.
+Retrieves the full cached source list for a previous `web_search` or `x_search` call.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|

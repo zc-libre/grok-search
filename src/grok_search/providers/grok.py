@@ -153,13 +153,22 @@ class GrokSearchProvider(BaseSearchProvider):
             }
         return payload
 
-    def _get_search_tools(self, platform: str = "") -> list[dict]:
+    def _get_search_tools(self, platform: str = "", x_search_opts: dict | None = None) -> list[dict]:
         tools = [{"type": "web_search"}]
-        if platform and platform.lower() in ("twitter", "x", "x.com"):
-            tools.append({"type": "x_search"})
+        # 有 x_search 参数时始终加入，否则仅在 platform 为 Twitter/X 时加入
+        need_x_search = bool(x_search_opts) or (platform and platform.lower() in ("twitter", "x", "x.com"))
+        if need_x_search:
+            x_tool: dict = {"type": "x_search"}
+            if x_search_opts:
+                for key in ("allowed_x_handles", "excluded_x_handles", "from_date", "to_date",
+                            "enable_image_understanding", "enable_video_understanding"):
+                    if key in x_search_opts and x_search_opts[key] is not None:
+                        x_tool[key] = x_search_opts[key]
+            tools.append(x_tool)
         return tools
 
-    async def search(self, query: str, platform: str = "", min_results: int = 3, max_results: int = 10, ctx=None) -> List[SearchResult]:
+    async def search(self, query: str, platform: str = "", min_results: int = 3, max_results: int = 10,
+                     x_search_opts: dict | None = None, ctx=None) -> List[SearchResult]:
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
@@ -172,7 +181,7 @@ class GrokSearchProvider(BaseSearchProvider):
         time_context = get_local_time_info() + "\n"
         user_content = time_context + query + platform_prompt
 
-        tools = self._get_search_tools(platform) if self.api_mode == "responses" else None
+        tools = self._get_search_tools(platform, x_search_opts) if self.api_mode == "responses" else None
         payload = self._build_payload(search_prompt, user_content, tools)
 
         await log_info(ctx, f"platform_prompt: {query + platform_prompt}", config.debug_enabled)

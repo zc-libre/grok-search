@@ -211,6 +211,83 @@ async def web_search(
 
 
 @mcp.tool(
+    name="x_search",
+    output_schema=None,
+    description="""
+    Search posts on X (formerly Twitter) using xAI's x_search tool. Requires GROK_API_MODE=responses.
+
+    Use this tool when the user wants to:
+    - Search what people are saying on X/Twitter about a topic
+    - Find posts from specific X accounts (e.g., "@elonmusk's latest posts about AI")
+    - Search X posts within a specific date range (e.g., "tweets from last week")
+    - Analyze images or videos in X posts
+
+    Returns the same structure as web_search:
+    - session_id: string
+    - content: string (answer only)
+    - sources_count: int
+    """,
+    meta={"version": "1.0.0", "author": "guda.studio"},
+)
+async def x_search(
+    query: Annotated[str, "Natural-language search query for X/Twitter posts."],
+    x_handles: Annotated[str, "Comma-separated X handles to search (max 10, without @, e.g., 'elonmusk,xai'). Leave empty to search all."] = "",
+    excluded_x_handles: Annotated[str, "Comma-separated X handles to exclude (max 10, without @)."] = "",
+    from_date: Annotated[str, "Start date in ISO8601 format (e.g., '2026-03-01T00:00:00Z'). Leave empty for no date filter."] = "",
+    to_date: Annotated[str, "End date in ISO8601 format (e.g., '2026-03-20T00:00:00Z'). Leave empty for no date filter."] = "",
+    image_understanding: Annotated[bool, "Enable analysis of images in X posts."] = False,
+    video_understanding: Annotated[bool, "Enable analysis of videos in X posts."] = False,
+    model: Annotated[str, "Optional model ID for this request only."] = "",
+) -> dict:
+    session_id = new_session_id()
+
+    if config.grok_api_mode != "responses":
+        await _SOURCES_CACHE.set(session_id, [])
+        return {"session_id": session_id, "content": "x_search 仅在 GROK_API_MODE=responses 时可用", "sources_count": 0}
+
+    try:
+        api_url = config.grok_api_url
+        api_key = config.grok_api_key
+    except ValueError as e:
+        await _SOURCES_CACHE.set(session_id, [])
+        return {"session_id": session_id, "content": f"配置错误: {str(e)}", "sources_count": 0}
+
+    effective_model = config.grok_model
+    if model:
+        available = await _get_available_models_cached(api_url, api_key)
+        if available and model not in available:
+            await _SOURCES_CACHE.set(session_id, [])
+            return {"session_id": session_id, "content": f"无效模型: {model}", "sources_count": 0}
+        effective_model = model
+
+    # 构建 x_search 工具配置
+    x_search_opts: dict = {}
+    if x_handles:
+        x_search_opts["allowed_x_handles"] = [h.strip() for h in x_handles.split(",") if h.strip()][:10]
+    if excluded_x_handles:
+        x_search_opts["excluded_x_handles"] = [h.strip() for h in excluded_x_handles.split(",") if h.strip()][:10]
+    if from_date:
+        x_search_opts["from_date"] = from_date
+    if to_date:
+        x_search_opts["to_date"] = to_date
+    if image_understanding:
+        x_search_opts["enable_image_understanding"] = True
+    if video_understanding:
+        x_search_opts["enable_video_understanding"] = True
+
+    grok_provider = GrokSearchProvider(api_url, api_key, effective_model, config.grok_api_mode, config.grok_reasoning_effort)
+
+    try:
+        result = await grok_provider.search(query, platform="X", x_search_opts=x_search_opts)
+    except Exception:
+        result = ""
+
+    answer, grok_sources = split_answer_and_sources(result)
+    await _SOURCES_CACHE.set(session_id, grok_sources)
+    return {"session_id": session_id, "content": answer, "sources_count": len(grok_sources)}
+
+
+@mcp.tool(
     name="get_sources",
     description="""
     When you feel confused or curious about the search response content, use the session_id returned by web_search to invoke the this tool to obtain the corresponding list of information sources.

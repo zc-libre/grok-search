@@ -187,7 +187,7 @@ claude mcp list
 ## 三、MCP 工具介绍
 
 <details>
-<summary>本项目提供八个 MCP 工具（展开查看）</summary>
+<summary>本项目提供九个 MCP 工具（展开查看）</summary>
 
 ### `web_search` — AI 网络搜索
 
@@ -209,9 +209,26 @@ claude mcp list
 - `content`: Grok 回答正文（已自动剥离信源）
 - `sources_count`: 已缓存的信源数量
 
+### `x_search` — X/Twitter 搜索（Responses API）
+
+通过 xAI 的 x_search 工具搜索 X（原 Twitter）上的帖子。**仅在 `GROK_API_MODE=responses` 时可用。**
+
+| 参数 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `query` | string | ✅ | - | 搜索查询语句 |
+| `x_handles` | string | ❌ | `""` | 限定搜索的 X 账号（逗号分隔，无需 @，最多 10 个） |
+| `excluded_x_handles` | string | ❌ | `""` | 排除的 X 账号（逗号分隔，最多 10 个） |
+| `from_date` | string | ❌ | `""` | 起始日期（ISO8601 格式，如 `2026-03-01T00:00:00Z`） |
+| `to_date` | string | ❌ | `""` | 截止日期（ISO8601 格式） |
+| `image_understanding` | bool | ❌ | `false` | 分析帖子中的图片 |
+| `video_understanding` | bool | ❌ | `false` | 分析帖子中的视频 |
+| `model` | string | ❌ | `null` | 按次指定 Grok 模型 ID |
+
+返回值结构同 `web_search`。
+
 ### `get_sources` — 获取信源
 
-通过 `session_id` 获取对应 `web_search` 的全部信源。
+通过 `session_id` 获取对应 `web_search` 或 `x_search` 的全部信源。
 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
